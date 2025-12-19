@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "GooseNetMobile",
-    "slug": "GooseNetMobile",
+    "name": "GooseNet Mobile",
+    "slug": "goosenetmobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -20,10 +20,16 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.yotamblu.GooseNetMobile"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e4a8f0e6-a09f-466e-a910-ece11829841c"
+      }
     }
   }
 }

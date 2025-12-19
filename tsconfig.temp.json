@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "checkJs": true,
+        "noEmit": true,
+        "jsx": "react-native",
+        "moduleResolution": "node",
+        "target": "esnext",
+        "module": "esnext",
+        "skipLibCheck": true,
+        "esModuleInterop": true
+    },
+    "include": [
+        "**/*.js"
+    ],
+    "exclude": [
+        "App.backup.js",
+        "node_modules"
+    ]
+}
+```
