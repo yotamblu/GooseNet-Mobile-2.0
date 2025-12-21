@@ -188,7 +188,62 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 1.5,
   },
- 
+  backToLoginButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  backToLoginButtonText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  registerButton: {
+    marginTop: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  registerButtonDisabled: {
+    opacity: 0.6,
+  },
+  registerButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  rolePickerContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  rolePickerButton: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.2)',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rolePickerButtonActive: {
+    backgroundColor: '#F97316',
+    borderColor: '#F97316',
+  },
+  rolePickerButtonText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  rolePickerButtonTextActive: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
   screenContentContainer: {
     padding: 20,
     paddingBottom: 120,
@@ -663,7 +718,9 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 30,
     borderRadius: 12,
     marginTop: 15,
-    width: '100%',
+    width: '85%',
+    maxWidth: 400,
+    alignSelf: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(37, 99, 235, 0.2)',
@@ -676,6 +733,16 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  garminButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  garminLogo: {
+    width: 24,
+    height: 24,
   },
   searchInput: {
     backgroundColor: 'rgba(255, 255, 255, 0.08)',

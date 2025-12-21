@@ -14,6 +14,7 @@ enableScreens(false);
 // Screens
 import LoadingScreen from './screens/LoadingScreen';
 import LoginScreen from './screens/LoginScreen';
+import RegistrationScreen from './screens/RegistrationScreen';
 import HomeFeedScreen from './screens/HomeFeedScreen';
 import SearchScreen from './screens/SearchScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -26,6 +27,9 @@ import NotificationsScreen from './screens/NotificationsScreen';
 import FollowersListModal from './screens/FollowersListModal';
 import FollowingListModal from './screens/FollowingListModal';
 import AthleteProfileModal from './screens/AthleteProfileModal';
+import CoachIdScreen from './screens/CoachIdScreen';
+import CoachIdInputScreen from './screens/CoachIdInputScreen';
+import CoachConnectionConfirmScreen from './screens/CoachConnectionConfirmScreen';
 
 // Contexts
 import { ModalContext } from './contexts/ModalContext';
@@ -81,6 +85,9 @@ function MainTabs({ onLogout, role }) {
       <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
       <Tab.Screen name="Notifications" component={NotificationsScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="CoachId" component={CoachIdScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="CoachIdInput" component={CoachIdInputScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="CoachConnectionConfirm" component={CoachConnectionConfirmScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
 
       <Tab.Screen
         name="Planned"
@@ -143,6 +150,7 @@ function MainTabs({ onLogout, role }) {
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('loading');
   const [userRole, setUserRole] = useState(null);
+  const [registrationData, setRegistrationData] = useState(null);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState(null);
@@ -209,7 +217,26 @@ export default function App() {
         <ModalContext.Provider value={{ openModal, closeModal }}>
 
           {currentScreen === 'loading' && <LoadingScreen />}
-          {currentScreen === 'login' && <LoginScreen onLoginSuccess={bootstrap} />}
+          {currentScreen === 'login' && (
+            <LoginScreen 
+              onLoginSuccess={bootstrap} 
+              onNavigateToRegistration={(data) => {
+                setRegistrationData(data);
+                setCurrentScreen('registration');
+              }}
+              initialData={registrationData}
+            />
+          )}
+          {currentScreen === 'registration' && (
+            <RegistrationScreen
+              onRegistrationSuccess={bootstrap}
+              onBackToLogin={(data) => {
+                setRegistrationData(data);
+                setCurrentScreen('login');
+              }}
+              initialData={registrationData}
+            />
+          )}
           {currentScreen === 'home' && (
             <NavigationContainer>
               <MainTabs onLogout={handleLogout} role={userRole} />

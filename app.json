@@ -7,25 +7,49 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
+    "scheme": "goosenet",
+
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
     "ios": {
       "supportsTablet": true
     },
+
     "android": {
+      "package": "com.yotamblu.GooseNetMobile",
+      "edgeToEdgeEnabled": true,
+
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.yotamblu.GooseNetMobile"
+
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "category": ["BROWSABLE", "DEFAULT"],
+          "data": [
+            {
+              "scheme": "goosenet",
+              "host": "oauth"
+            },
+            {
+              "scheme": "goosenet",
+              "host": "expo-development-client"
+            }
+          ]
+        }
+      ]
     },
+
     "web": {
       "favicon": "./assets/favicon.png"
     },
+
     "extra": {
       "eas": {
         "projectId": "e4a8f0e6-a09f-466e-a910-ece11829841c"

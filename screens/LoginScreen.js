@@ -7,10 +7,12 @@ import * as Crypto from 'expo-crypto';
 import { styles } from '../utils/styles';
 import GridOverlay from '../components/GridOverlay';
 
-const LoginScreen = ({ onLoginSuccess }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+const LoginScreen = ({ onLoginSuccess, onNavigateToRegistration, initialData }) => {
+  const [username, setUsername] = useState(initialData?.userName || '');
+  const [password, setPassword] = useState(initialData?.password || '');
   const [isLoading, setIsLoading] = useState(false);
+
+  const isFormValid = username.trim().length > 0 && password.trim().length > 0;
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -98,6 +100,33 @@ const LoginScreen = ({ onLoginSuccess }) => {
             const roleData = await roleResponse.json();
             if (roleData.role) {
               await AsyncStorage.setItem('role', roleData.role);
+              
+              // Validate Garmin connection for athletes
+              if (roleData.role === 'athlete') {
+                try {
+                  const garminResponse = await fetch(
+                    `https://gooseapi.ddns.net/api/ValidateGarminConnection?apiKey=${encodeURIComponent(apiKey)}`,
+                    {
+                      method: 'GET',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                    }
+                  );
+                  
+                  if (garminResponse.status === 200) {
+                    const garminData = await garminResponse.json();
+                    if (garminData.isConnected === true) {
+                      await AsyncStorage.setItem('garminConnected', 'true');
+                    } else {
+                      await AsyncStorage.removeItem('garminConnected');
+                    }
+                  }
+                } catch (garminError) {
+                  console.error('Error validating Garmin connection:', garminError);
+                  // Continue with login even if Garmin validation fails
+                }
+              }
             }
           } else {
             console.error('Failed to get user role:', roleResponse.status);
@@ -181,14 +210,27 @@ const LoginScreen = ({ onLoginSuccess }) => {
               </View>
 
               <TouchableOpacity
-                style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+                style={[styles.loginButton, (!isFormValid || isLoading) && styles.loginButtonDisabled]}
                 onPress={handleLogin}
                 activeOpacity={0.8}
-                disabled={isLoading}
+                disabled={!isFormValid || isLoading}
               >
                 <Text style={styles.loginButtonText}>
                   {isLoading ? 'LOGGING IN...' : 'LOGIN'}
                 </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.registerButton}
+                onPress={() => onNavigateToRegistration({
+                  ...initialData,
+                  userName: username.trim(),
+                  password: password,
+                })}
+                activeOpacity={0.8}
+                disabled={isLoading}
+              >
+                <Text style={styles.registerButtonText}>Create Account</Text>
               </TouchableOpacity>
             </View>
           </View>
