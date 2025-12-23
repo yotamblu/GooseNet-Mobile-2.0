@@ -161,10 +161,11 @@ export default function ChangeProfilePicScreen({ navigation }) {
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64String = reader.result;
-          // Remove data:image/...;base64, prefix if present
-          const base64Data = base64String.includes(',') 
-            ? base64String.split(',')[1] 
-            : base64String;
+          // Keep the full data:image/...;base64, prefix
+          // Ensure it has the data:image prefix
+          const base64Data = base64String.startsWith('data:image') 
+            ? base64String 
+            : `data:image/png;base64,${base64String}`;
           resolve(base64Data);
         };
         reader.onerror = reject;
