@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 export default function MapComponent({ routeCoordinates, height = 200 }) {
@@ -17,6 +17,26 @@ export default function MapComponent({ routeCoordinates, height = 200 }) {
   const polylineCoords = routeCoordinates
     .map(coord => `[${coord.latitude}, ${coord.longitude}]`)
     .join(',');
+
+  // Android-specific zoom adjustment
+  const isAndroid = Platform.OS === 'android';
+  const maxZoom = isAndroid ? 16 : 19;
+  const zoomOutAdjustment = isAndroid ? 1 : 0;
+  
+  // Build the fitBounds code based on platform
+  const fitBoundsCode = isAndroid 
+    ? `map.fitBounds(bounds, { 
+        padding: [20, 20],
+        maxZoom: ${maxZoom}
+      });
+      // On Android, slightly reduce zoom for better view
+      setTimeout(function() {
+        var currentZoom = map.getZoom();
+        if (currentZoom > 13) {
+          map.setZoom(currentZoom - ${zoomOutAdjustment});
+        }
+      }, 100);`
+    : `map.fitBounds(bounds, { padding: [20, 20] });`;
 
   const html = `
     <!DOCTYPE html>
@@ -46,7 +66,7 @@ export default function MapComponent({ routeCoordinates, height = 200 }) {
         }).setView([${centerLat}, ${centerLng}], 14);
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
+          maxZoom: ${maxZoom},
         }).addTo(map);
         
         var coordinates = [${polylineCoords}];
@@ -59,7 +79,8 @@ export default function MapComponent({ routeCoordinates, height = 200 }) {
         
         // Fit map to polyline bounds
         if (coordinates.length > 1) {
-          map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
+          var bounds = polyline.getBounds();
+          ${fitBoundsCode}
         }
       </script>
     </body>

@@ -5,14 +5,14 @@ import { styles } from '../utils/styles';
 import ProfilePic from './ProfilePic';
 import MapComponent from './MapComponent';
 
-const WorkoutComponent = ({ workoutName, athletePic, athleteUserName, avgHR, pace, distance, time, date, routeCoordinates }) => {
+const WorkoutComponent = ({ workoutName, athletePic, athleteUserName, avgHR, pace, distance, time, date, routeCoordinates, athleteImageData }) => {
   const [liked, setLiked] = useState(false);
 
   return (
     <View style={styles.workoutCard}>
       <View style={styles.workoutTopSection}>
         <View style={styles.workoutHeader}>
-          <ProfilePic userName={athletePic} size={50} />
+          <ProfilePic userName={athletePic} size={50} imageData={athleteImageData} />
           <View style={styles.workoutHeaderText}>
             <Text style={styles.workoutAthleteName}>{athleteUserName || athletePic}</Text>
             <Text style={styles.workoutDateInfo}>{date || 'Today'}</Text>
@@ -40,9 +40,12 @@ const WorkoutComponent = ({ workoutName, athletePic, athleteUserName, avgHR, pac
         </View>
       </View>
       
-      <View style={styles.mapContainer}>
-        <MapComponent routeCoordinates={routeCoordinates} height={250} />
-      </View>
+      {/* Only show map if there are coordinates (not a treadmill workout) */}
+      {routeCoordinates && routeCoordinates.length > 0 && (
+        <View style={styles.mapContainer}>
+          <MapComponent routeCoordinates={routeCoordinates} height={250} />
+        </View>
+      )}
       
       <View style={styles.workoutActions}>
         <TouchableOpacity 

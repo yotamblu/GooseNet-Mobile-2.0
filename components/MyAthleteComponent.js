@@ -6,7 +6,7 @@ import ProfilePic from './ProfilePic';
 const MyAthleteComponent = ({ athleteName, imageData, onPress }) => {
   return (
     <View style={styles.myAthleteCard}>
-      <ProfilePic userName={athleteName} size={80} />
+      <ProfilePic userName={athleteName} size={80} imageData={imageData || null} />
       <Text style={styles.myAthleteName}>{athleteName}</Text>
       <TouchableOpacity style={styles.viewAthleteButton} onPress={onPress}>
         <Text style={styles.viewAthleteButtonText}>View Athlete</Text>

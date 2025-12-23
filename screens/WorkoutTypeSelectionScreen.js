@@ -19,8 +19,10 @@ export default function WorkoutTypeSelectionScreen({ route }) {
   };
 
   const handleStrengthWorkout = () => {
-    // TODO: Navigate to strength workout creation screen
-    console.log('Create strength workout for', targetType, targetName);
+    navigation.navigate('CreateStrengthWorkout', {
+      targetType: targetType,
+      targetName: targetName,
+    });
   };
 
   return (

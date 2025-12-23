@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useContext } from 'react';
 import { ScrollView, Text, View, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../utils/styles';
 import BaseScreen from '../components/BaseScreen';
@@ -62,7 +63,28 @@ export default function AthleteProfileModal({ athleteName, athleteUserName, onCl
           <TouchableOpacity style={styles.settingsButton} onPress={handleAddWorkout}>
             <Text style={styles.settingsButtonText}>Add Workout</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.settingsButton}>
+          <TouchableOpacity 
+            style={styles.settingsButton}
+            onPress={async () => {
+              if (onNavigate) {
+                // Get the coach's apiKey from AsyncStorage
+                try {
+                  const apiKey = await AsyncStorage.getItem('apiKey');
+                  onNavigate('Activities', {
+                    athleteName: athleteUserName || athleteName,
+                    apiKey: apiKey, // Coach's apiKey when viewing from athlete profile
+                  });
+                } catch (err) {
+                  console.error('Error getting apiKey:', err);
+                  // Still navigate, ActivitiesScreen will try to get it
+                  onNavigate('Activities', {
+                    athleteName: athleteUserName || athleteName,
+                    apiKey: null,
+                  });
+                }
+              }
+            }}
+          >
             <Text style={styles.settingsButtonText}>Completed Workouts</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingsButton}>

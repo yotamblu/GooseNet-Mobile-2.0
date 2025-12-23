@@ -21,6 +21,7 @@ import ProfileScreen from './screens/ProfileScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import PlannedWorkoutsScreen from './screens/PlannedWorkoutsScreen';
 import SleepDataScreen from './screens/SleepDataScreen';
+import ActivitiesScreen from './screens/ActivitiesScreen';
 import MyAthletesScreen from './screens/MyAthletesScreen';
 import FlockScreen from './screens/FlockScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
@@ -35,6 +36,7 @@ import ChangeProfilePicScreen from './screens/ChangeProfilePicScreen';
 import ChooseWorkoutSourceScreen from './screens/ChooseWorkoutSourceScreen';
 import WorkoutTypeSelectionScreen from './screens/WorkoutTypeSelectionScreen';
 import CreateRunningWorkoutScreen from './screens/CreateRunningWorkoutScreen';
+import CreateStrengthWorkoutScreen from './screens/CreateStrengthWorkoutScreen';
 
 // Contexts
 import { ModalContext } from './contexts/ModalContext';
@@ -99,6 +101,7 @@ function MainTabs({ onLogout, role }) {
       <Tab.Screen name="ChooseWorkoutSource" component={ChooseWorkoutSourceScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
       <Tab.Screen name="WorkoutTypeSelection" component={WorkoutTypeSelectionScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
       <Tab.Screen name="CreateRunningWorkout" component={CreateRunningWorkoutScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="CreateStrengthWorkout" component={CreateStrengthWorkoutScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
 
       <Tab.Screen
         name="Planned"
@@ -118,6 +121,17 @@ function MainTabs({ onLogout, role }) {
           tabBarItemStyle: isAthlete ? {} : { display: 'none' },
           tabBarIcon: ({ focused, color }) => (
             <TabIcon name={focused ? 'moon' : 'moon-outline'} color={color} />
+          ),
+        }}
+      />
+
+      <Tab.Screen
+        name="Activities"
+        component={ActivitiesScreen}
+        options={{
+          tabBarItemStyle: isAthlete ? {} : { display: 'none' },
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name={focused ? 'walk' : 'walk-outline'} color={color} />
           ),
         }}
       />
@@ -163,6 +177,7 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState('loading');
   const [userRole, setUserRole] = useState(null);
   const [registrationData, setRegistrationData] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState(null);
@@ -172,18 +187,53 @@ export default function App() {
   const triggerRefresh = useCallback(() => setRefreshTrigger(v => v + 1), []);
 
   useEffect(() => {
-    bootstrap();
+    // Check login status immediately but don't change screen
+    // LoadingScreen will handle the transition after animation
+    const checkLogin = async () => {
+      try {
+        const userName = await AsyncStorage.getItem('userName');
+        const role = await AsyncStorage.getItem('role');
+        setUserRole(role === 'athlete' || role === 'coach' ? role : null);
+        setIsLoggedIn(!!userName);
+      } catch {
+        setIsLoggedIn(false);
+      }
+    };
+    checkLogin();
   }, []);
 
   const bootstrap = async () => {
     try {
       const userName = await AsyncStorage.getItem('userName');
       const role = await AsyncStorage.getItem('role');
+      const hasUser = !!userName;
       setUserRole(role === 'athlete' || role === 'coach' ? role : null);
-      setCurrentScreen(userName ? 'home' : 'login');
+      setIsLoggedIn(hasUser);
+      // Don't change screen here - let LoadingScreen handle it after animation
+      return hasUser;
     } catch {
+      setIsLoggedIn(false);
+      return false;
+    }
+  };
+
+  const handleStartPress = () => {
+    setCurrentScreen('login');
+  };
+
+  const handleRedirectToHome = async () => {
+    const hasUser = await bootstrap();
+    if (hasUser) {
+      setCurrentScreen('home');
+    } else {
       setCurrentScreen('login');
     }
+  };
+
+  const handleLoginSuccess = async () => {
+    // After successful login, update state and navigate to home
+    await bootstrap();
+    setCurrentScreen('home');
   };
 
   const handleLogout = async () => {
@@ -239,10 +289,16 @@ export default function App() {
       <RefreshContext.Provider value={{ refreshTrigger, triggerRefresh }}>
         <ModalContext.Provider value={{ openModal, closeModal }}>
 
-          {currentScreen === 'loading' && <LoadingScreen />}
+          {currentScreen === 'loading' && (
+            <LoadingScreen
+              isLoggedIn={isLoggedIn}
+              onStartPress={handleStartPress}
+              onRedirectToHome={handleRedirectToHome}
+            />
+          )}
           {currentScreen === 'login' && (
             <LoginScreen 
-              onLoginSuccess={bootstrap} 
+              onLoginSuccess={handleLoginSuccess} 
               onNavigateToRegistration={(data) => {
                 setRegistrationData(data);
                 setCurrentScreen('registration');
@@ -252,7 +308,7 @@ export default function App() {
           )}
           {currentScreen === 'registration' && (
             <RegistrationScreen
-              onRegistrationSuccess={bootstrap}
+              onRegistrationSuccess={handleLoginSuccess}
               onBackToLogin={(data) => {
                 setRegistrationData(data);
                 setCurrentScreen('login');

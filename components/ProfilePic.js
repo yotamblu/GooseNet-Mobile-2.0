@@ -7,7 +7,7 @@ import { RefreshContext } from '../contexts/RefreshContext';
 // Android AsyncStorage has a ~2MB limit per row
 const MAX_CACHE_SIZE = Platform.OS === 'android' ? 1500000 : 5000000; // 1.5MB on Android, 5MB on iOS
 
-const ProfilePic = ({ userName, size = 50 }) => {
+const ProfilePic = ({ userName, size = 50, imageData = null }) => {
   const refreshContext = useContext(RefreshContext);
   const refreshTrigger = refreshContext?.refreshTrigger ?? 0; 
    const [imageBase64, setImageBase64] = useState(null);
@@ -44,6 +44,18 @@ const ProfilePic = ({ userName, size = 50 }) => {
   }, [loading, pulseAnim]);
 
   useEffect(() => {
+    // If imageData is provided directly, use it and skip fetching entirely
+    if (imageData && imageData.trim() !== '') {
+      const formattedImageData = imageData.startsWith('data:image') 
+        ? imageData 
+        : `data:image/png;base64,${imageData}`;
+      setImageBase64(formattedImageData);
+      setError(false);
+      setLoading(false);
+      checkInProgressRef.current = false; // Ensure no fetch is in progress
+      return; // Exit early - do not fetch from API
+    }
+
     if (!userName) {
       setImageBase64(null);
       setError(false);
@@ -128,17 +140,17 @@ const ProfilePic = ({ userName, size = 50 }) => {
         
         if (base64Data && base64Data.length > 0) {
           // Format the base64 data
-          const imageData = base64Data.startsWith('data:image') 
+          const formattedImageData = base64Data.startsWith('data:image') 
             ? base64Data 
             : `data:image/png;base64,${base64Data}`;
           
           // Only update if the image is different from cached version
-          if (cachedImage !== imageData) {
-            setImageBase64(imageData);
+          if (cachedImage !== formattedImageData) {
+            setImageBase64(formattedImageData);
             // Update cache only if image is not too large
-            if (imageData.length <= MAX_CACHE_SIZE) {
+            if (formattedImageData.length <= MAX_CACHE_SIZE) {
               try {
-                await AsyncStorage.setItem(cacheKey, imageData);
+                await AsyncStorage.setItem(cacheKey, formattedImageData);
                 await AsyncStorage.setItem(`${cacheKey}_timestamp`, Date.now().toString());
               } catch (cacheErr) {
                 // On Android, if image is too large, just skip caching
@@ -174,7 +186,7 @@ const ProfilePic = ({ userName, size = 50 }) => {
     };
 
     loadProfilePic();
-  }, [userName, refreshTrigger]);
+  }, [userName, refreshTrigger, imageData]);
 
   const borderStyle = {
     borderWidth: 2,

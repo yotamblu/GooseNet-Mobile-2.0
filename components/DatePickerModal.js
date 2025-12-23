@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet } from 'react-native';
 
 const DatePickerModal = ({ visible, onClose, onDateSelect, initialDate }) => {
@@ -6,6 +6,45 @@ const DatePickerModal = ({ visible, onClose, onDateSelect, initialDate }) => {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
   const [selectedDay, setSelectedDay] = useState(currentDate.getDate());
+  
+  const monthScrollRef = useRef(null);
+  const dayScrollRef = useRef(null);
+  const yearScrollRef = useRef(null);
+
+  // Reset to today when modal opens and no initialDate is provided
+  useEffect(() => {
+    if (visible && !initialDate) {
+      const today = new Date();
+      setSelectedYear(today.getFullYear());
+      setSelectedMonth(today.getMonth() + 1);
+      setSelectedDay(today.getDate());
+    } else if (visible && initialDate) {
+      // Reset to initialDate when modal opens with a date
+      setSelectedYear(initialDate.getFullYear());
+      setSelectedMonth(initialDate.getMonth() + 1);
+      setSelectedDay(initialDate.getDate());
+    }
+  }, [visible, initialDate]);
+
+  // Scroll to selected values when modal opens
+  useEffect(() => {
+    if (visible) {
+      // Small delay to ensure the ScrollViews are rendered
+      setTimeout(() => {
+        const itemHeight = 48; // Approximate height of each picker item (12 padding + 24 text + 12 padding)
+        const scrollOffset = (selectedMonth - 1) * itemHeight - 80; // 80 is paddingVertical
+        monthScrollRef.current?.scrollTo({ y: Math.max(0, scrollOffset), animated: true });
+        
+        const dayOffset = (selectedDay - 1) * itemHeight - 80;
+        dayScrollRef.current?.scrollTo({ y: Math.max(0, dayOffset), animated: true });
+        
+        const currentYear = new Date().getFullYear();
+        const yearIndex = selectedYear - (currentYear - 50);
+        const yearOffset = yearIndex * itemHeight - 80;
+        yearScrollRef.current?.scrollTo({ y: Math.max(0, yearOffset), animated: true });
+      }, 100);
+    }
+  }, [visible, selectedMonth, selectedDay, selectedYear]);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 100 }, (_, i) => currentYear - 50 + i);
@@ -24,9 +63,10 @@ const DatePickerModal = ({ visible, onClose, onDateSelect, initialDate }) => {
     onClose();
   };
 
-  const renderPickerColumn = (items, selectedValue, onValueChange, formatter = (val) => val) => {
+  const renderPickerColumn = (items, selectedValue, onValueChange, formatter = (val) => val, scrollRef = null) => {
     return (
       <ScrollView
+        ref={scrollRef}
         style={styles.pickerColumn}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.pickerContent}
@@ -68,7 +108,7 @@ const DatePickerModal = ({ visible, onClose, onDateSelect, initialDate }) => {
             </TouchableOpacity>
           </View>
           <View style={styles.pickerContainer}>
-            {renderPickerColumn(months, selectedMonth, setSelectedMonth, (val) => monthNames[val - 1])}
+            {renderPickerColumn(months, selectedMonth, setSelectedMonth, (val) => monthNames[val - 1], monthScrollRef)}
             {renderPickerColumn(days, selectedDay, (day) => {
               setSelectedDay(day);
               // Adjust day if it exceeds days in new month
@@ -76,7 +116,7 @@ const DatePickerModal = ({ visible, onClose, onDateSelect, initialDate }) => {
               if (day > maxDays) {
                 setSelectedDay(maxDays);
               }
-            })}
+            }, (val) => val, dayScrollRef)}
             {renderPickerColumn(years, selectedYear, (year) => {
               setSelectedYear(year);
               // Adjust day if current day doesn't exist in new year
@@ -84,7 +124,7 @@ const DatePickerModal = ({ visible, onClose, onDateSelect, initialDate }) => {
               if (selectedDay > maxDays) {
                 setSelectedDay(maxDays);
               }
-            })}
+            }, (val) => val, yearScrollRef)}
           </View>
         </View>
       </View>

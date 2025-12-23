@@ -13,42 +13,50 @@ const LoadingScreen = ({ isLoggedIn, onStartPress, onRedirectToHome }) => {
   const startButtonOpacity = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
-    // Animate goose logo: fade in, scale up, and slide up
-    Animated.parallel([
-      Animated.timing(gooseLogoOpacity, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.spring(gooseLogoScale, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-      Animated.timing(gooseLogoTranslateY, {
-        toValue: 0,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      // When animation completes
-      if (!isLoggedIn) {
-        // Show start button if not logged in
-        setShowStartButton(true);
-        Animated.timing(startButtonOpacity, {
+    // Check login status first (async)
+    const checkLoginStatus = async () => {
+      // Small delay to ensure component is mounted
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Animate goose logo: fade in, scale up, and slide up
+      Animated.parallel([
+        Animated.timing(gooseLogoOpacity, {
           toValue: 1,
-          duration: 500,
+          duration: 1000,
           useNativeDriver: true,
-        }).start();
-      } else {
-        // Automatically redirect to home if logged in
-        setTimeout(() => {
-          onRedirectToHome();
-        }, 500);
-      }
-    });
-  }, [isLoggedIn]);
+        }),
+        Animated.spring(gooseLogoScale, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+        Animated.timing(gooseLogoTranslateY, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // When animation completes
+        if (!isLoggedIn) {
+          // Show start button if not logged in
+          setShowStartButton(true);
+          Animated.timing(startButtonOpacity, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }).start();
+        } else {
+          // Automatically redirect to home if logged in
+          setTimeout(() => {
+            onRedirectToHome();
+          }, 500);
+        }
+      });
+    };
+    
+    checkLoginStatus();
+  }, [isLoggedIn, onRedirectToHome]);
 
   const handleStartPress = () => {
     onStartPress();
