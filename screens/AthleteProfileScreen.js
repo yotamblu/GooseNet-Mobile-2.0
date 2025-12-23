@@ -28,8 +28,8 @@ const AthleteProfileScreen = ({ route }) => {
           <Ionicons name="refresh" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <ScrollView 
-          style={styles.screenContent}
-          contentContainerStyle={styles.screenContentContainer}
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingTop: 90, paddingBottom: 120, paddingHorizontal: 20 }}
         >
           <Text style={styles.screenTitle}>{athleteName}'s Profile</Text>
           <Text style={styles.centeredText}>Athlete profile details coming soon</Text>

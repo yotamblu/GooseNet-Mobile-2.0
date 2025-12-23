@@ -1031,6 +1031,42 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 15,
   },
+  workoutSourceContainer: {
+    flex: 1,
+    gap: 20,
+    paddingTop: 20,
+  },
+  workoutSourceButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.2)',
+    marginBottom: 20,
+  },
+  workoutSourceIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  workoutSourceTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  workoutSourceDescription: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 });
 
 export { width, height };

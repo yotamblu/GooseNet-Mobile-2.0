@@ -64,7 +64,7 @@ export default function CoachIdInputScreen({ navigation, route }) {
       <View style={[coachIdInputStyles.container, { paddingTop: insets.top + 90 }]}>
         <TouchableOpacity 
           style={[coachIdInputStyles.backButton, { top: insets.top + 50 }]} 
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate('Settings')}
           activeOpacity={0.8}
         >
           <Ionicons name="arrow-back" size={20} color="#FFFFFF" />

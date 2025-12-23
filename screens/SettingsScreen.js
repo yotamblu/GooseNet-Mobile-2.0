@@ -1000,10 +1000,18 @@ export default function SettingsScreen({ onLogout }) {
           {userName && (
             <Text style={styles.settingsUserName}>@{userName}</Text>
           )}
-          <TouchableOpacity style={styles.settingsButton}>
+          <TouchableOpacity 
+            style={styles.settingsButton}
+            onPress={() => navigation.navigate('ChangeProfilePic')}
+            activeOpacity={0.8}
+          >
             <Text style={styles.settingsButtonText}>Change Profile Picture</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.settingsButton}>
+          <TouchableOpacity 
+            style={styles.settingsButton}
+            onPress={() => navigation.navigate('ChangePassword')}
+            activeOpacity={0.8}
+          >
             <Text style={styles.settingsButtonText}>Change Password</Text>
           </TouchableOpacity>
           {userRole === 'coach' && (

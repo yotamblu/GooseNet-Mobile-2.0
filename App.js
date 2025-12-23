@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { useState, useEffect, useCallback } from 'react';
-import { Alert, Modal } from 'react-native';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Alert, Modal, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // FORCE JS SCREENS (critical)
 import { enableScreens } from 'react-native-screens';
@@ -30,6 +30,11 @@ import AthleteProfileModal from './screens/AthleteProfileModal';
 import CoachIdScreen from './screens/CoachIdScreen';
 import CoachIdInputScreen from './screens/CoachIdInputScreen';
 import CoachConnectionConfirmScreen from './screens/CoachConnectionConfirmScreen';
+import ChangePasswordScreen from './screens/ChangePasswordScreen';
+import ChangeProfilePicScreen from './screens/ChangeProfilePicScreen';
+import ChooseWorkoutSourceScreen from './screens/ChooseWorkoutSourceScreen';
+import WorkoutTypeSelectionScreen from './screens/WorkoutTypeSelectionScreen';
+import CreateRunningWorkoutScreen from './screens/CreateRunningWorkoutScreen';
 
 // Contexts
 import { ModalContext } from './contexts/ModalContext';
@@ -54,6 +59,7 @@ function MainTabs({ onLogout, role }) {
   const isAthlete = role === 'athlete';
   const isCoach = role === 'coach';
   const SettingsTab = SettingsWrapper({ onLogout });
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -63,8 +69,8 @@ function MainTabs({ onLogout, role }) {
           backgroundColor: '#0F172A',
           borderTopColor: '#2A5FBF',
           borderTopWidth: 1,
-          height: 85,
-          paddingBottom: 25,
+          height: Platform.OS === 'android' ? 85 + insets.bottom : 85,
+          paddingBottom: Platform.OS === 'android' ? 25 + insets.bottom : 25,
           paddingTop: 8,
         },
         tabBarActiveTintColor: '#2563EB',
@@ -88,6 +94,11 @@ function MainTabs({ onLogout, role }) {
       <Tab.Screen name="CoachId" component={CoachIdScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
       <Tab.Screen name="CoachIdInput" component={CoachIdInputScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
       <Tab.Screen name="CoachConnectionConfirm" component={CoachConnectionConfirmScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="ChangeProfilePic" component={ChangeProfilePicScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="ChooseWorkoutSource" component={ChooseWorkoutSourceScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="WorkoutTypeSelection" component={WorkoutTypeSelectionScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="CreateRunningWorkout" component={CreateRunningWorkoutScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
 
       <Tab.Screen
         name="Planned"
@@ -148,6 +159,7 @@ function MainTabs({ onLogout, role }) {
 
 /* ================= APP ROOT ================= */
 export default function App() {
+  const navigationRef = useRef(null);
   const [currentScreen, setCurrentScreen] = useState('loading');
   const [userRole, setUserRole] = useState(null);
   const [registrationData, setRegistrationData] = useState(null);
@@ -192,6 +204,16 @@ export default function App() {
     setModalData(null);
   };
 
+  const handleNavigateFromModal = (screenName, params) => {
+    if (navigationRef.current) {
+      closeModal(); // Close the modal first
+      // Use setTimeout to ensure modal closes before navigation
+      setTimeout(() => {
+        navigationRef.current?.navigate(screenName, params);
+      }, 100);
+    }
+  };
+
   const renderModalContent = () => {
     switch (modalType) {
       case 'followers':
@@ -204,6 +226,7 @@ export default function App() {
             athleteName={modalData?.athleteName}
             athleteUserName={modalData?.athleteUserName}
             onClose={closeModal}
+            onNavigate={handleNavigateFromModal}
           />
         );
       default:
@@ -238,7 +261,7 @@ export default function App() {
             />
           )}
           {currentScreen === 'home' && (
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
               <MainTabs onLogout={handleLogout} role={userRole} />
             </NavigationContainer>
           )}

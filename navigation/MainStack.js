@@ -5,6 +5,7 @@ import FollowersListScreen from '../screens/FollowersListScreen';
 import FollowingListScreen from '../screens/FollowingListScreen';
 import AthleteProfileScreen from '../screens/AthleteProfileScreen';
 import CoachIdScreen from '../screens/CoachIdScreen';
+import ChangePasswordScreen from '../screens/ChangePasswordScreen';
 
 const Stack = createStackNavigator();
 
@@ -33,6 +34,10 @@ const MainStack = ({ role, onLogout }) => {
       <Stack.Screen 
         name="CoachId" 
         component={CoachIdScreen}
+      />
+      <Stack.Screen 
+        name="ChangePassword" 
+        component={ChangePasswordScreen}
       />
     </Stack.Navigator>
   );

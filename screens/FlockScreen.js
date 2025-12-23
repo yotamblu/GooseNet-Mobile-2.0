@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { ScrollView, View, Text, ActivityIndicator, Alert, TouchableOpacity, Modal, TextInput, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { styles } from '../utils/styles';
@@ -7,6 +8,7 @@ import BaseScreen from '../components/BaseScreen';
 import FlockComponent from '../components/FlockComponent';
 
 export default function FlockScreen() {
+  const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
   const [flocks, setFlocks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -84,6 +86,11 @@ export default function FlockScreen() {
       );
 
       if (!response.ok) {
+        // Check if it's a duplicate name error (401 Unauthorized)
+        if (response.status === 401) {
+          Alert.alert('Error', 'You already have a flock of this name.');
+          return;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -133,7 +140,12 @@ export default function FlockScreen() {
                 <FlockComponent
                   key={flock.id}
                   flockName={flock.flockName}
-                  onAddWorkout={() => Alert.alert('Add Workout', `Add workout to ${flock.flockName}`)}
+                  onAddWorkout={() => {
+                    navigation.navigate('ChooseWorkoutSource', {
+                      targetType: 'flock',
+                      targetName: flock.flockName,
+                    });
+                  }}
                 />
               ))}
             </View>
