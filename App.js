@@ -37,6 +37,8 @@ import ChooseWorkoutSourceScreen from './screens/ChooseWorkoutSourceScreen';
 import WorkoutTypeSelectionScreen from './screens/WorkoutTypeSelectionScreen';
 import CreateRunningWorkoutScreen from './screens/CreateRunningWorkoutScreen';
 import CreateStrengthWorkoutScreen from './screens/CreateStrengthWorkoutScreen';
+import CompletedRunningWorkoutScreen from './screens/CompletedRunningWorkoutScreen';
+import FullScreenMapScreen from './screens/FullScreenMapScreen';
 
 // Contexts
 import { ModalContext } from './contexts/ModalContext';
@@ -102,6 +104,8 @@ function MainTabs({ onLogout, role }) {
       <Tab.Screen name="WorkoutTypeSelection" component={WorkoutTypeSelectionScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
       <Tab.Screen name="CreateRunningWorkout" component={CreateRunningWorkoutScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
       <Tab.Screen name="CreateStrengthWorkout" component={CreateStrengthWorkoutScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="CompletedRunningWorkout" component={CompletedRunningWorkoutScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="FullScreenMap" component={FullScreenMapScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
 
       <Tab.Screen
         name="Planned"
@@ -186,6 +190,53 @@ export default function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const triggerRefresh = useCallback(() => setRefreshTrigger(v => v + 1), []);
 
+  // Fetch athletes and flocks for coaches on app boot
+  const fetchCoachData = async () => {
+    try {
+      const role = await AsyncStorage.getItem('role');
+      if (role !== 'coach') return;
+
+      const apiKey = await AsyncStorage.getItem('apiKey');
+      if (!apiKey) return;
+
+      // Fetch athletes in background
+      fetch(`https://gooseapi.ddns.net/api/athletes?apiKey=${encodeURIComponent(apiKey)}`)
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          }
+        })
+        .then(data => {
+          if (data?.athletesData) {
+            // Store in AsyncStorage for quick access
+            AsyncStorage.setItem('cachedAthletes', JSON.stringify(data.athletesData));
+          }
+        })
+        .catch(err => {
+          console.error('Background fetch athletes error:', err);
+        });
+
+      // Fetch flocks in background
+      fetch(`https://gooseapi.ddns.net/api/flocks/getFlocks?apiKey=${encodeURIComponent(apiKey)}`)
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          }
+        })
+        .then(data => {
+          if (data?.flocks) {
+            // Store in AsyncStorage for quick access
+            AsyncStorage.setItem('cachedFlocks', JSON.stringify(data.flocks));
+          }
+        })
+        .catch(err => {
+          console.error('Background fetch flocks error:', err);
+        });
+    } catch (err) {
+      console.error('Error in fetchCoachData:', err);
+    }
+  };
+
   useEffect(() => {
     // Check login status immediately but don't change screen
     // LoadingScreen will handle the transition after animation
@@ -195,6 +246,11 @@ export default function App() {
         const role = await AsyncStorage.getItem('role');
         setUserRole(role === 'athlete' || role === 'coach' ? role : null);
         setIsLoggedIn(!!userName);
+        
+        // If coach is logged in, start fetching athletes and flocks
+        if (role === 'coach' && userName) {
+          fetchCoachData();
+        }
       } catch {
         setIsLoggedIn(false);
       }
@@ -232,7 +288,14 @@ export default function App() {
 
   const handleLoginSuccess = async () => {
     // After successful login, update state and navigate to home
-    await bootstrap();
+    const hasUser = await bootstrap();
+    if (hasUser) {
+      // If coach, start fetching athletes and flocks
+      const role = await AsyncStorage.getItem('role');
+      if (role === 'coach') {
+        fetchCoachData();
+      }
+    }
     setCurrentScreen('home');
   };
 

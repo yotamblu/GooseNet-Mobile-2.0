@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useContext, useRef } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, FlatList } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, FlatList, Animated } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,10 +33,33 @@ export default function ActivitiesScreen() {
   const [userName, setUserName] = useState(null);
   const [apiKey, setApiKey] = useState(null);
   const [athleteName, setAthleteName] = useState(null);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     initializeData();
   }, []);
+
+  // Watch for route param changes (when coach navigates to different athlete)
+  useEffect(() => {
+    const newAthleteName = route?.params?.athleteName;
+    const newApiKey = route?.params?.apiKey;
+    
+    if (newAthleteName && newAthleteName !== athleteName) {
+      // Reset everything when a new athlete is selected
+      setWorkouts([]);
+      setRunningNextCursor(null);
+      setStrengthNextCursor(null);
+      setError(null);
+      setSelectedDate(null);
+      setLoading(true);
+      
+      // Update athlete name and API key
+      if (newApiKey) {
+        setApiKey(newApiKey);
+      }
+      setAthleteName(newAthleteName);
+    }
+  }, [route?.params?.athleteName, route?.params?.apiKey]);
 
   // Track previous athleteName to detect when coach switches athletes
   const prevAthleteNameRef = useRef(null);
@@ -49,6 +72,7 @@ export default function ActivitiesScreen() {
         setRunningNextCursor(null);
         setStrengthNextCursor(null);
         setError(null);
+        setSelectedDate(null);
       }
       prevAthleteNameRef.current = athleteName;
       fetchWorkouts(true);
@@ -83,7 +107,7 @@ export default function ActivitiesScreen() {
 
   const formatDateForAPI = (date) => {
     if (!date) return null;
-    // Remove leading zeros from month and day
+    // Format as MM/DD/YYYY without leading zeros
     const month = String(date.getMonth() + 1);
     const day = String(date.getDate());
     const year = date.getFullYear();
@@ -163,14 +187,25 @@ export default function ActivitiesScreen() {
       }
 
       const data = await response.json();
+      console.log('[ActivitiesScreen] Response data:', JSON.stringify(data, null, 2));
       
       // Handle different response formats:
       // New feed endpoint returns: {runningWorkouts: [...], strengthWorkouts: [...], runningNextCursor: "...", strengthNextCursor: "..."}
-      // Date-based endpoint returns: [{...}] (direct array)
+      // Date-based endpoint might return: [{...}] (direct array) or {workouts: [...]} or {runningWorkouts: [...], strengthWorkouts: [...]}
       let workoutsData = [];
       if (selectedDate) {
-        // Date-based endpoint: response is a direct array
-        workoutsData = Array.isArray(data) ? data : [];
+        // Date-based endpoint: check different possible response formats
+        if (Array.isArray(data)) {
+          workoutsData = data;
+        } else if (data.workouts && Array.isArray(data.workouts)) {
+          workoutsData = data.workouts;
+        } else if (data.runningWorkouts || data.strengthWorkouts) {
+          // If it returns the same format as feed endpoint
+          workoutsData = mergeAndSortWorkouts(data.runningWorkouts || [], data.strengthWorkouts || []);
+        } else {
+          workoutsData = [];
+        }
+        console.log('[ActivitiesScreen] Processed workoutsData for date:', workoutsData.length, 'workouts');
       } else {
         // New feed endpoint: merge running and strength workouts
         workoutsData = mergeAndSortWorkouts(data.runningWorkouts || [], data.strengthWorkouts || []);
@@ -186,6 +221,8 @@ export default function ActivitiesScreen() {
       
       if (reset) {
         setWorkouts(workoutsData);
+        // Reset fade animation to full opacity when workouts are loaded
+        fadeAnim.setValue(1);
       } else {
         // When loading more, merge with existing workouts and re-sort
         const merged = [...workouts, ...workoutsData];
@@ -223,7 +260,8 @@ export default function ActivitiesScreen() {
       }
     } catch (err) {
       console.error('Failed to fetch workouts:', err);
-      setError('Failed to load workouts');
+      console.error('Error details:', err.message);
+      setError(`Failed to load workouts: ${err.message}`);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -301,6 +339,31 @@ export default function ActivitiesScreen() {
   };
 
   const clearDateFilter = () => {
+    // Show loading state
+    setLoading(true);
+    
+    // Reset fade animation to full opacity before starting new animation
+    fadeAnim.setValue(1);
+    
+    // Animate fade out and back in to show feedback
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 0.3,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start((finished) => {
+      // Ensure opacity is back to 1 when animation completes
+      if (finished) {
+        fadeAnim.setValue(1);
+      }
+    });
+
     setSelectedDate(null);
     setRunningNextCursor(null); // Reset cursors to go back to feed mode
     setStrengthNextCursor(null);
@@ -332,7 +395,7 @@ export default function ActivitiesScreen() {
     if (!paceInMinKm) return 'N/A';
     const minutes = Math.floor(paceInMinKm);
     const seconds = Math.floor((paceInMinKm - minutes) * 60);
-    return `${minutes}:${String(seconds).padStart(2, '0')} /km`;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
   };
 
   const parseCoordinates = (coordsStr) => {
@@ -398,18 +461,30 @@ export default function ActivitiesScreen() {
     const athleteImageData = item.athleteProfilePic || null;
     
     return (
-      <WorkoutComponent
-        workoutName={workoutName}
-        athletePic={athleteName}
-        athleteUserName={athleteName}
-        avgHR={item.workoutAvgHR}
-        pace={pace}
-        distance={parseFloat(distanceKm)}
-        time={time}
-        date={item.workoutDate || 'N/A'}
-        routeCoordinates={routeCoords}
-        athleteImageData={athleteImageData}
-      />
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => {
+          if (item.workoutId) {
+            navigation.navigate('CompletedRunningWorkout', {
+              workoutId: item.workoutId,
+              athleteName: athleteName,
+            });
+          }
+        }}
+      >
+        <WorkoutComponent
+          workoutName={workoutName}
+          athletePic={athleteName}
+          athleteUserName={athleteName}
+          avgHR={item.workoutAvgHR}
+          pace={pace}
+          distance={parseFloat(distanceKm)}
+          time={time}
+          date={item.workoutDate || 'N/A'}
+          routeCoordinates={routeCoords}
+          athleteImageData={athleteImageData}
+        />
+      </TouchableOpacity>
     );
   };
 
@@ -476,10 +551,12 @@ export default function ActivitiesScreen() {
           </View>
         )}
 
-        {loading && selectedDate ? (
+        {loading ? (
           <View style={activityStyles.loadingContainer}>
             <ActivityIndicator size="large" color="#F97316" />
-            <Text style={activityStyles.loadingText}>Searching workouts...</Text>
+            <Text style={activityStyles.loadingText}>
+              {selectedDate ? 'Searching workouts...' : 'Loading workouts...'}
+            </Text>
           </View>
         ) : workouts.length === 0 && !loading ? (
           <View style={activityStyles.emptyContainer}>
@@ -489,15 +566,17 @@ export default function ActivitiesScreen() {
             </Text>
           </View>
         ) : (
-          <FlatList
-            data={workouts}
-            renderItem={renderWorkoutItem}
-            keyExtractor={(item, index) => item.workoutId?.toString() || index.toString()}
-            contentContainerStyle={activityStyles.listContent}
-            onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={renderFooter}
-          />
+          <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+            <FlatList
+              data={workouts}
+              renderItem={renderWorkoutItem}
+              keyExtractor={(item, index) => item.workoutId?.toString() || index.toString()}
+              contentContainerStyle={activityStyles.listContent}
+              onEndReached={handleLoadMore}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={renderFooter}
+            />
+          </Animated.View>
         )}
       </View>
     </BaseScreen>
