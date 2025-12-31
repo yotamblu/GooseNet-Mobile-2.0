@@ -1,10 +1,9 @@
 import React, { useState, useCallback, useContext, useEffect } from 'react';
-import { ScrollView, View, ActivityIndicator, Text } from 'react-native';
+import { ScrollView, View, ActivityIndicator, Text, StyleSheet, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { styles } from '../utils/styles';
 import BaseScreen from '../components/BaseScreen';
-import WorkoutComponent from '../components/WorkoutComponent';
-import PlannedWorkoutComponent from '../components/PlannedWorkoutComponent';
 import ProfilePic from '../components/ProfilePic';
 import { RefreshContext } from '../contexts/RefreshContext';
 
@@ -90,49 +89,6 @@ export default function HomeFeedScreen() {
     setRefreshing(false);
   }, [triggerRefresh]);
 
-  const sampleWorkouts = [
-    {
-      id: '1',
-      workoutName: 'Morning Run',
-      athletePic: 'john_doe',
-      athleteUserName: 'John Doe',
-      avgHR: 145,
-      pace: '5:18',
-      distance: 9.5,
-      time: '50m 24s',
-      date: 'Today at 12:21 PM',
-      routeCoordinates: [
-        { latitude: 37.78825, longitude: -122.4324 },
-        { latitude: 37.78925, longitude: -122.4334 },
-      ],
-    },
-    {
-      id: '2',
-      workoutName: 'Evening Jog',
-      athletePic: 'jane_smith',
-      athleteUserName: 'Jane Smith',
-      avgHR: 135,
-      pace: '6:00',
-      distance: 5,
-      time: '30m 00s',
-      date: 'Today at 6:45 PM',
-      routeCoordinates: [
-        { latitude: 37.78825, longitude: -122.4324 },
-        { latitude: 37.78725, longitude: -122.4314 },
-      ],
-    },
-  ];
-
-  const samplePlannedWorkouts = [
-    {
-      id: '1',
-      workoutName: 'Interval Training',
-      coachPic: 'coach_mike',
-      coachUserName: 'Coach Mike',
-      date: '2024-01-15',
-      description: '5x 1km intervals at 80% effort with 2min rest',
-    },
-  ];
 
   return (
     <BaseScreen showTopBar title="Home Feed" onRefresh={onRefresh}>
@@ -169,13 +125,65 @@ export default function HomeFeedScreen() {
             <ActivityIndicator size="large" color="#F97316" />
           </View>
         )}
-        {sampleWorkouts.map(workout => (
-          <WorkoutComponent key={workout.id} {...workout} />
-        ))}
-        {samplePlannedWorkouts.map(workout => (
-          <PlannedWorkoutComponent key={workout.id} {...workout} />
-        ))}
+
+        {/* Coming Soon GooseNet Social Graphic */}
+        <View style={localStyles.comingSoonContainer}>
+          <View style={localStyles.logoContainer}>
+            <Image
+              source={require('../assets/app_images/goose-logo-no-bg.png')}
+              style={localStyles.logo}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={localStyles.comingSoonTitle}>GooseNet Social</Text>
+          <Text style={localStyles.comingSoonSubtitle}>Coming Soon</Text>
+          <View style={localStyles.iconContainer}>
+            <Ionicons name="people" size={60} color="rgba(255, 255, 255, 0.3)" />
+          </View>
+        </View>
       </ScrollView>
     </BaseScreen>
   );
 }
+
+const localStyles = StyleSheet.create({
+  comingSoonContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+    minHeight: 500,
+  },
+  logoContainer: {
+    width: 120,
+    height: 120,
+    marginBottom: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.8,
+  },
+  comingSoonTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 10,
+    letterSpacing: 1,
+  },
+  comingSoonSubtitle: {
+    fontSize: 20,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    marginBottom: 40,
+    fontWeight: '500',
+  },
+  iconContainer: {
+    marginTop: 20,
+    opacity: 0.5,
+  },
+});

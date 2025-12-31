@@ -88,9 +88,6 @@ export default function AthleteProfileModal({ athleteName, athleteUserName, onCl
             <Text style={styles.settingsButtonText}>Completed Workouts</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingsButton}>
-            <Text style={styles.settingsButtonText}>Add To Flock</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingsButton}>
             <Text style={styles.settingsButtonText}>Sleep Data</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingsButton}>

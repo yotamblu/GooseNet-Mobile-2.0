@@ -140,10 +140,9 @@ export default function FlockScreen() {
                 <FlockComponent
                   key={flock.id}
                   flockName={flock.flockName}
-                  onAddWorkout={() => {
-                    navigation.navigate('ChooseWorkoutSource', {
-                      targetType: 'flock',
-                      targetName: flock.flockName,
+                  onManage={() => {
+                    navigation.navigate('FlockManagement', {
+                      flockName: flock.flockName,
                     });
                   }}
                 />

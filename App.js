@@ -24,6 +24,8 @@ import SleepDataScreen from './screens/SleepDataScreen';
 import ActivitiesScreen from './screens/ActivitiesScreen';
 import MyAthletesScreen from './screens/MyAthletesScreen';
 import FlockScreen from './screens/FlockScreen';
+import FlockManagementScreen from './screens/FlockManagementScreen';
+import AddToFlockScreen from './screens/AddToFlockScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import FollowersListModal from './screens/FollowersListModal';
 import FollowingListModal from './screens/FollowingListModal';
@@ -106,6 +108,8 @@ function MainTabs({ onLogout, role }) {
       <Tab.Screen name="CreateStrengthWorkout" component={CreateStrengthWorkoutScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
       <Tab.Screen name="CompletedRunningWorkout" component={CompletedRunningWorkoutScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
       <Tab.Screen name="FullScreenMap" component={FullScreenMapScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="FlockManagement" component={FlockManagementScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
+      <Tab.Screen name="AddToFlock" component={AddToFlockScreen} options={{ tabBarItemStyle: { display: 'none' } }} />
 
       <Tab.Screen
         name="Planned"
